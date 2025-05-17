@@ -1,7 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme from '../constants/theme';
 
 export default function ChallengeDetails() {
@@ -14,7 +22,36 @@ export default function ChallengeDetails() {
     invitees,
     note,
     status,
+    canBet,
   } = useLocalSearchParams();
+
+  const handleBet = async () => {
+    try {
+      const newBet = {
+        id: Date.now(),
+        title,
+        type,
+        duration,
+        description,
+        reward,
+        invitees,
+        note,
+        status: 'Nierozstrzygnięte',
+        createdAt: new Date().toISOString(),
+      };
+
+      const existing = await AsyncStorage.getItem('userBets');
+      const parsed = existing ? JSON.parse(existing) : [];
+
+      const updated = [...parsed, newBet];
+      await AsyncStorage.setItem('userBets', JSON.stringify(updated));
+
+      Alert.alert('Sukces!', 'Wyzwanie zostało obstawione.');
+    } catch (e) {
+      console.error('Błąd zapisu obstawienia:', e);
+      Alert.alert('Błąd', 'Nie udało się zapisać zakładu.');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -39,8 +76,18 @@ export default function ChallengeDetails() {
         <Text style={styles.label}>Informacje dodatkowe</Text>
         <Text style={styles.value}>{note || 'Brak'}</Text>
 
-        <Text style={styles.label}>Status</Text>
-        <Text style={styles.value}>{status || 'Nierozstrzygnięte'}</Text>
+        {status && (
+          <>
+            <Text style={styles.label}>Status</Text>
+            <Text style={styles.value}>{status}</Text>
+          </>
+        )}
+
+        {canBet !== 'false' && (
+          <TouchableOpacity style={styles.betButton} onPress={handleBet}>
+            <Text style={styles.betButtonText}>Obstaw wyzwanie</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -70,5 +117,17 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.md,
     color: theme.colors.textDark,
     marginTop: 4,
+  },
+  betButton: {
+    marginTop: theme.spacing.lg,
+    backgroundColor: theme.colors.lightPink,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.full,
+    alignItems: 'center',
+  },
+  betButtonText: {
+    color: theme.colors.primaryDark,
+    fontWeight: 'bold',
+    fontSize: theme.fontSizes.md,
   },
 });

@@ -11,9 +11,13 @@ export default function Layout() {
         tabBarInactiveTintColor: theme.colors.darkGray,
         tabBarStyle: {
           backgroundColor: theme.colors.white,
-          borderTopColor: theme.colors.lightGray,
           height: 60,
-          paddingBottom: 6,
+          borderTopWidth: 0.5,
+          borderTopColor: theme.colors.gray,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
         },
       }}
     >
@@ -22,50 +26,64 @@ export default function Layout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" color={color} size={size} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
+
       <Tabs.Screen
         name="history"
         options={{
           title: 'Historia',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time" color={color} size={size} />
+            <Ionicons name="time" size={size} color={color} />
           ),
         }}
       />
+
       <Tabs.Screen
         name="chat"
         options={{
           title: 'Czat',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles" color={color} size={size} />
+            <Ionicons name="chatbubbles" size={size} color={color} />
           ),
         }}
       />
+
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Ustawienia',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" color={color} size={size} />
+            <Ionicons name="settings" size={size} color={color} />
           ),
         }}
       />
-      {/* Ukrywamy challenge-create, żeby nie pojawiało się w tabach */}
+
+      {/* Ukryty ekran: katalog nagród */}
+      <Tabs.Screen
+        name="rewards"
+        options={{
+          href: null, // 👈 ukrywa z tab bara
+        }}
+      />
+
+      {/* Ukryty ekran: szczegóły wyzwania */}
+      <Tabs.Screen
+        name="challenge-details"
+        options={{
+          href: null,
+        }}
+      />
+
+      {/* Ukryty ekran: dodaj własne */}
       <Tabs.Screen
         name="challenge-create"
         options={{
           href: null,
         }}
-        />
-        <Tabs.Screen
-  name="challenge-details"
-  options={{
-    href: null, // 👈 ukrywa z tab bara
-  }}
-/>
+      />
     </Tabs>
   );
 }

@@ -21,12 +21,18 @@ export default function History() {
   useEffect(() => {
     const loadChallenges = async () => {
       try {
-        const data = await AsyncStorage.getItem('customChallenges');
-        const parsed = data ? JSON.parse(data) : [];
+        const custom = await AsyncStorage.getItem('customChallenges');
+        const bets = await AsyncStorage.getItem('userBets');
 
-        const withStatus = parsed.map((item) => ({
+        const parsedCustom = custom ? JSON.parse(custom) : [];
+        const parsedBets = bets ? JSON.parse(bets) : [];
+
+        const combined = [...parsedCustom, ...parsedBets];
+
+        const withStatus = combined.map((item) => ({
           ...item,
           status:
+            item.status ||
             ['Wygrane', 'Przegrane', 'Nierozstrzygnięte'][
               Math.floor(Math.random() * 3)
             ],
@@ -54,8 +60,12 @@ export default function History() {
             const updated = challenges.filter((ch) => ch.id !== id);
             setChallenges(updated);
 
-            const toSave = updated.map(({ status, ...rest }) => rest);
-            await AsyncStorage.setItem('customChallenges', JSON.stringify(toSave));
+            // Aktualizujemy tylko customChallenges i userBets
+            const newCustom = updated.filter((c) => !c.status);
+            const newBets = updated.filter((c) => c.status);
+
+            await AsyncStorage.setItem('customChallenges', JSON.stringify(newCustom));
+            await AsyncStorage.setItem('userBets', JSON.stringify(newBets));
           },
         },
       ]

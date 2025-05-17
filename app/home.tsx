@@ -6,14 +6,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect, router } from 'expo-router';
 import theme from '../constants/theme';
 
 export default function Home() {
-  const router = useRouter();
   const [customChallenges, setCustomChallenges] = useState([]);
 
   const user = {
@@ -25,19 +25,18 @@ export default function Home() {
   };
 
   const latestChallenges = [
-    { id: 'static1', title: 'Wstań przed 6:00' },
-    { id: 'static2', title: 'Nie używaj telefonu 3h' },
-    { id: 'static3', title: 'Zrób 50 pompek' },
+    { id: 'static1', title: 'Wstań przed 6:00', type: 'Wyzwanie' },
+    { id: 'static2', title: 'Nie używaj telefonu 3h', type: 'Zakład' },
+    { id: 'static3', title: 'Zrób 50 pompek', type: 'Pojedynek' },
   ];
 
-  // 🔁 Ładowanie zapisanych wyzwań
   useFocusEffect(
     React.useCallback(() => {
       const loadChallenges = async () => {
         try {
           const data = await AsyncStorage.getItem('customChallenges');
           const parsed = data ? JSON.parse(data) : [];
-          setCustomChallenges(parsed.reverse()); // najnowsze pierwsze
+          setCustomChallenges(parsed.reverse());
         } catch (e) {
           console.error('Błąd odczytu z AsyncStorage:', e);
         }
@@ -47,13 +46,46 @@ export default function Home() {
     }, [])
   );
 
-  // 🔗 Połączone dane
   const allChallenges = [...customChallenges, ...latestChallenges];
+
+  const handleBetQuick = async (challenge) => {
+    Alert.alert(
+      'Obstaw wyzwanie',
+      `Czy chcesz obstawić "${challenge.title}"?`,
+      [
+        { text: 'Anuluj', style: 'cancel' },
+        {
+          text: 'Obstaw',
+          onPress: async () => {
+            try {
+              const newBet = {
+                ...challenge,
+                id: Date.now(),
+                status: 'Nierozstrzygnięte',
+                createdAt: new Date().toISOString(),
+              };
+
+              const existing = await AsyncStorage.getItem('userBets');
+              const parsed = existing ? JSON.parse(existing) : [];
+
+              const updated = [...parsed, newBet];
+              await AsyncStorage.setItem('userBets', JSON.stringify(updated));
+
+              Alert.alert('Sukces!', 'Wyzwanie zostało obstawione.');
+            } catch (e) {
+              console.error('Błąd obstawiania:', e);
+              Alert.alert('Błąd', 'Nie udało się zapisać zakładu.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* SALDO */}
+        {/* SALDO PUNKTOWE */}
         <View style={styles.pointsWrapper}>
           <Text style={styles.pointsText}>🏆 {user.points} pkt</Text>
         </View>
@@ -73,7 +105,6 @@ export default function Home() {
             <Text style={styles.summaryTitle}>Twoje miejsce</Text>
             <Text style={styles.summaryValue}>#{user.rankingPosition}</Text>
           </View>
-
           <View style={styles.summaryBox}>
             <Text style={styles.summaryTitle}>Top 3 – Maj</Text>
             {user.topUsers.map((name, index) => (
@@ -84,14 +115,31 @@ export default function Home() {
           </View>
         </View>
 
-        {/* SEKCJA: NAJŚWIEŻSZE WYZWANIA */}
+        {/* KAFEL NAGRÓD */}
+        <View style={styles.rewardsCardWrapper}>
+          <TouchableOpacity
+            style={styles.rewardsCard}
+            onPress={() => router.push('/rewards')}
+          >
+            <Text style={styles.rewardsCardTitle}>Sprawdź katalog nagród</Text>
+            <Text style={styles.rewardsCardSubtitle}>
+              Wymień punkty na nagrody
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* SEPARATOR */}
         <View style={styles.separator} />
         <Text style={styles.sectionTitle}>Najświeższe wyzwania</Text>
 
+        {/* LISTA WYZWAN */}
         {allChallenges.map((challenge, index) => (
           <View key={challenge.id ?? index} style={styles.challengeCard}>
             <Text style={styles.challengeText}>{challenge.title}</Text>
-            <TouchableOpacity style={styles.betButton}>
+            <TouchableOpacity
+              style={styles.betButton}
+              onPress={() => handleBetQuick(challenge)}
+            >
               <Text style={styles.betButtonText}>Obstaw</Text>
             </TouchableOpacity>
           </View>
@@ -189,6 +237,25 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.md,
     fontWeight: '600',
     color: theme.colors.primaryDark,
+  },
+  rewardsCardWrapper: {
+    marginTop: theme.spacing.lg,
+  },
+  rewardsCard: {
+    backgroundColor: theme.colors.lightPink,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.lg,
+    alignItems: 'center',
+  },
+  rewardsCardTitle: {
+    fontSize: theme.fontSizes.lg,
+    fontWeight: 'bold',
+    color: theme.colors.primaryDark,
+  },
+  rewardsCardSubtitle: {
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.darkGray,
+    marginTop: 4,
   },
   separator: {
     borderBottomWidth: 1,
