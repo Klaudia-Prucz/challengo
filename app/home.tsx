@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,15 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme from '../constants/theme';
 
 export default function Home() {
+  const router = useRouter();
+  const [customChallenges, setCustomChallenges] = useState([]);
+
   const user = {
     name: 'Użytkownik',
     points: 120,
@@ -19,86 +25,102 @@ export default function Home() {
   };
 
   const latestChallenges = [
-    { title: 'Wstań przed 6:00' },
-    { title: 'Nie używaj telefonu 3h' },
-    { title: 'Zrób 50 pompek' },
+    { id: 'static1', title: 'Wstań przed 6:00' },
+    { id: 'static2', title: 'Nie używaj telefonu 3h' },
+    { id: 'static3', title: 'Zrób 50 pompek' },
   ];
 
+  // 🔁 Ładowanie zapisanych wyzwań
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadChallenges = async () => {
+        try {
+          const data = await AsyncStorage.getItem('customChallenges');
+          const parsed = data ? JSON.parse(data) : [];
+          setCustomChallenges(parsed.reverse()); // najnowsze pierwsze
+        } catch (e) {
+          console.error('Błąd odczytu z AsyncStorage:', e);
+        }
+      };
+
+      loadChallenges();
+    }, [])
+  );
+
+  // 🔗 Połączone dane
+  const allChallenges = [...customChallenges, ...latestChallenges];
+
   return (
-    <ScrollView style={styles.container}>
-      {/* SALDO PUNKTOWE */}
-      <View style={styles.pointsWrapper}>
-        <Text style={styles.pointsText}>🏆 {user.points} pkt</Text>
-      </View>
-
-      {/* POWITANIE */}
-      <View style={styles.welcomeSection}>
-        <Image source={{ uri: user.avatar }} style={styles.avatar} />
-        <View style={styles.welcomeTextContainer}>
-          <Text style={styles.welcomeText}>Witaj,</Text>
-          <Text style={styles.userName}>{user.name}</Text>
-        </View>
-      </View>
-
-      {/* PODSUMOWANIE */}
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryTitle}>Twoje miejsce</Text>
-          <Text style={styles.summaryValue}>#{user.rankingPosition}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* SALDO */}
+        <View style={styles.pointsWrapper}>
+          <Text style={styles.pointsText}>🏆 {user.points} pkt</Text>
         </View>
 
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryTitle}>Top 3 – Maj</Text>
-          {user.topUsers.map((name, index) => (
-            <Text key={index} style={styles.summaryList}>
-              {['🥇', '🥈', '🥉'][index]} {name}
-            </Text>
-          ))}
+        {/* POWITANIE */}
+        <View style={styles.welcomeSection}>
+          <Image source={{ uri: user.avatar }} style={styles.avatar} />
+          <View style={styles.welcomeTextContainer}>
+            <Text style={styles.welcomeText}>Witaj,</Text>
+            <Text style={styles.userName}>{user.name}</Text>
+          </View>
         </View>
-      </View>
 
-      {/* PRZYCISK: WSZYSTKIE STATYSTYKI */}
-      <View style={styles.statsButtonWrapper}>
-        <Text style={styles.statsButton}>Wszystkie statystyki →</Text>
-      </View>
+        {/* PODSUMOWANIE */}
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryTitle}>Twoje miejsce</Text>
+            <Text style={styles.summaryValue}>#{user.rankingPosition}</Text>
+          </View>
 
-      {/* SEPARATOR */}
-      <View style={styles.separator} />
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryTitle}>Top 3 – Maj</Text>
+            {user.topUsers.map((name, index) => (
+              <Text key={index} style={styles.summaryList}>
+                {['🥇', '🥈', '🥉'][index]} {name}
+              </Text>
+            ))}
+          </View>
+        </View>
 
-      {/* NAGŁÓWEK SEKCJI */}
-      <Text style={styles.sectionTitle}>Najświeższe wyzwania</Text>
+        {/* SEKCJA: NAJŚWIEŻSZE WYZWANIA */}
+        <View style={styles.separator} />
+        <Text style={styles.sectionTitle}>Najświeższe wyzwania</Text>
 
-      {/* LISTA WYZWAN */}
-      {latestChallenges.map((challenge, index) => (
-        <View key={index} style={styles.challengeCard}>
-          <Text style={styles.challengeText}>{challenge.title}</Text>
-          <TouchableOpacity style={styles.betButton}>
-            <Text style={styles.betButtonText}>Obstaw</Text>
+        {allChallenges.map((challenge, index) => (
+          <View key={challenge.id ?? index} style={styles.challengeCard}>
+            <Text style={styles.challengeText}>{challenge.title}</Text>
+            <TouchableOpacity style={styles.betButton}>
+              <Text style={styles.betButtonText}>Obstaw</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        {/* PRZYCISK: DODAJ WŁASNE */}
+        <View style={styles.addCustomButtonWrapper}>
+          <TouchableOpacity
+            style={styles.addCustomButton}
+            onPress={() => router.push('/challenge-create')}
+          >
+            <Text style={styles.addCustomButtonText}>+ Dodaj własne</Text>
           </TouchableOpacity>
         </View>
-      ))}
-
-      {/* PRZYCISK: DODAJ WŁASNE */}
-      <View style={styles.addCustomButtonWrapper}>
-        <TouchableOpacity
-          style={styles.addCustomButton}
-          onPress={() => console.log('Dodaj własne')}
-        >
-          <Text style={styles.addCustomButtonText}>+ Dodaj własne</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: theme.colors.backgroundLight,
+  },
+  container: {
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
   },
-
   pointsWrapper: {
     alignItems: 'flex-end',
     marginBottom: theme.spacing.lg,
@@ -112,7 +134,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: theme.radius.full,
   },
-
   welcomeSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -138,7 +159,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.textDark,
   },
-
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -170,21 +190,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.primaryDark,
   },
-
-  statsButtonWrapper: {
-    alignItems: 'flex-end',
-    marginTop: theme.spacing.sm,
-  },
-  statsButton: {
-    color: theme.colors.primaryDark,
-    fontWeight: 'bold',
-    fontSize: theme.fontSizes.sm,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: theme.colors.lightPink,
-    borderRadius: theme.radius.full,
-  },
-
   separator: {
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.gray,
@@ -221,7 +226,6 @@ const styles = StyleSheet.create({
     color: theme.colors.primaryDark,
     fontWeight: 'bold',
   },
-
   addCustomButtonWrapper: {
     marginTop: theme.spacing.md,
     alignItems: 'center',
