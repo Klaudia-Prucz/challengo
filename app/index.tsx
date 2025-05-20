@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 
 export default function IndexRedirect() {
   useEffect(() => {
-    router.replace('/welcome'); // 👈 przekierowanie na welcome
+    router.replace('/welcome'); 
   }, []);
 
   return null;

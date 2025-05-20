@@ -1,6 +1,7 @@
 import { useFonts } from 'expo-font';
 import { Stack, SplashScreen } from 'expo-router';
 import { useEffect } from 'react';
+import AppBackground from '../components/AppBackground';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -16,5 +17,9 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+ return (
+  <AppBackground>
+    <Stack screenOptions={{ headerShown: false }} />
+  </AppBackground>
+);
 }

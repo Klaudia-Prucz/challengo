@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 
-export default function LoginScreen() {
-  const handleLogin = () => {
-    Alert.alert('Logowanie', 'Logowanie udane (symulacja)');
-    router.replace('/(tabs)/home');
+export default function ForgotPasswordScreen() {
+  const handleReset = () => {
+    Alert.alert('Przypomnienie hasła', 'Link do resetu został wysłany (symulacja)');
+    router.replace('/login');
   };
 
   return (
@@ -32,6 +32,8 @@ export default function LoginScreen() {
           <Image source={require('../assets/logotyp.png')} style={styles.logo} />
 
           <View style={styles.form}>
+            <Text style={styles.title}>Odzyskaj hasło</Text>
+
             <TextInput
               style={styles.input}
               placeholder="adres e-mail"
@@ -39,33 +41,12 @@ export default function LoginScreen() {
               keyboardType="email-address"
             />
 
-            <TextInput
-              style={styles.input}
-              placeholder="hasło"
-              placeholderTextColor="#BBB"
-              secureTextEntry
-            />
-
-<Pressable style={styles.forgotPassword} onPress={() => router.push('/forgot-password')}>
-  <Text style={styles.forgotText}>Nie pamiętam hasła</Text>
-</Pressable>
-
-
-            <Pressable style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Zaloguj się</Text>
+            <Pressable style={styles.button} onPress={handleReset}>
+              <Text style={styles.buttonText}>Wyślij link resetujący</Text>
             </Pressable>
 
-            <Text style={styles.orText}>lub kontynuuj przy użyciu</Text>
-
-            <View style={styles.socialRow}>
-              <Image source={require('../assets/facebook.png')} style={styles.socialIcon} />
-              <Image source={require('../assets/google.png')} style={styles.socialIcon} />
-            </View>
-
-            <Text style={styles.noAccountText}>Nie masz konta?</Text>
-
-            <Pressable style={styles.secondaryButton} onPress={() => router.push('/register')}>
-              <Text style={styles.secondaryButtonText}>Zarejestruj się</Text>
+            <Pressable style={styles.secondaryButton} onPress={() => router.push('/login')}>
+              <Text style={styles.secondaryButtonText}>Powrót do logowania</Text>
             </Pressable>
           </View>
         </View>
@@ -98,6 +79,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
+  title: {
+    fontFamily: 'Fredoka-Bold',
+    fontSize: 22,
+    color: '#3F51B5',
+    marginBottom: 12,
+  },
   input: {
     width: '100%',
     backgroundColor: '#F6F6FA',
@@ -109,16 +96,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Fredoka-Regular',
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginTop: -8,
-    marginBottom: 8,
-  },
-  forgotText: {
-    fontFamily: 'Fredoka-Regular',
-    fontSize: 14,
-    color: '#E76617',
-  },
   button: {
     backgroundColor: '#3F51B5',
     paddingVertical: 16,
@@ -129,39 +106,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 4,
+    marginTop: 8,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Fredoka-Bold',
   },
-  orText: {
-    fontFamily: 'Fredoka-Medium',
-    fontSize: 14,
-    color: '#E76617',
-    marginTop: 12,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    gap: 24,
-    marginVertical: 8,
-  },
-  socialIcon: {
-    width: 40,
-    height: 40,
-  },
-  noAccountText: {
-    fontFamily: 'Fredoka-Medium',
-    fontSize: 14,
-    color: '#E76617',
-    marginTop: 24,
-  },
   secondaryButton: {
-    backgroundColor: '#3F51B5',
+    marginTop: 24,
+    backgroundColor: '#E76617',
     paddingVertical: 12,
     paddingHorizontal: 40,
     borderRadius: 36,
-    marginTop: 8,
   },
   secondaryButtonText: {
     color: '#fff',

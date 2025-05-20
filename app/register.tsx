@@ -11,10 +11,26 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useState } from 'react';
 
-export default function LoginScreen() {
-  const handleLogin = () => {
-    Alert.alert('Logowanie', 'Logowanie udane (symulacja)');
+export default function RegisterScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleRegister = async () => {
+    if (!email || !password || !confirmPassword) {
+      Alert.alert('Błąd', 'Uzupełnij wszystkie pola');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Błąd', 'Hasła nie są takie same');
+      return;
+    }
+
+    // 🔄 Tylko symulacja
+    Alert.alert('Sukces!', 'Zarejestrowano pomyślnie (symulacja)');
     router.replace('/(tabs)/home');
   };
 
@@ -37,6 +53,9 @@ export default function LoginScreen() {
               placeholder="adres e-mail"
               placeholderTextColor="#BBB"
               keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
             />
 
             <TextInput
@@ -44,28 +63,27 @@ export default function LoginScreen() {
               placeholder="hasło"
               placeholderTextColor="#BBB"
               secureTextEntry
+              value={password}
+              onChangeText={setPassword}
             />
 
-<Pressable style={styles.forgotPassword} onPress={() => router.push('/forgot-password')}>
-  <Text style={styles.forgotText}>Nie pamiętam hasła</Text>
-</Pressable>
+            <TextInput
+              style={styles.input}
+              placeholder="powtórz hasło"
+              placeholderTextColor="#BBB"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
 
-
-            <Pressable style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Zaloguj się</Text>
+            <Pressable style={styles.button} onPress={handleRegister}>
+              <Text style={styles.buttonText}>Zarejestruj się</Text>
             </Pressable>
 
-            <Text style={styles.orText}>lub kontynuuj przy użyciu</Text>
+            <Text style={styles.noAccountText}>Masz już konto?</Text>
 
-            <View style={styles.socialRow}>
-              <Image source={require('../assets/facebook.png')} style={styles.socialIcon} />
-              <Image source={require('../assets/google.png')} style={styles.socialIcon} />
-            </View>
-
-            <Text style={styles.noAccountText}>Nie masz konta?</Text>
-
-            <Pressable style={styles.secondaryButton} onPress={() => router.push('/register')}>
-              <Text style={styles.secondaryButtonText}>Zarejestruj się</Text>
+            <Pressable style={styles.secondaryButton} onPress={() => router.push('/login')}>
+              <Text style={styles.secondaryButtonText}>Zaloguj się</Text>
             </Pressable>
           </View>
         </View>
@@ -73,6 +91,7 @@ export default function LoginScreen() {
     </ImageBackground>
   );
 }
+
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -109,16 +128,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Fredoka-Regular',
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginTop: -8,
-    marginBottom: 8,
-  },
-  forgotText: {
-    fontFamily: 'Fredoka-Regular',
-    fontSize: 14,
-    color: '#E76617',
-  },
   button: {
     backgroundColor: '#3F51B5',
     paddingVertical: 16,
@@ -134,21 +143,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontFamily: 'Fredoka-Bold',
-  },
-  orText: {
-    fontFamily: 'Fredoka-Medium',
-    fontSize: 14,
-    color: '#E76617',
-    marginTop: 12,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    gap: 24,
-    marginVertical: 8,
-  },
-  socialIcon: {
-    width: 40,
-    height: 40,
   },
   noAccountText: {
     fontFamily: 'Fredoka-Medium',
