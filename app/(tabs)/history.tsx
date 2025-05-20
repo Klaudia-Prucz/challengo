@@ -10,7 +10,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import theme from '../constants/theme';
+import theme from '../../constants/theme';
 
 const FILTERS = ['Wszystkie', 'Wygrane', 'Przegrane', 'Nierozstrzygnięte'];
 

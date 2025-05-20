@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import theme from '../constants/theme';
+import theme from '../../constants/theme';
 
 const topRewards = [
   {

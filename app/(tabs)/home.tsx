@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, router } from 'expo-router';
-import theme from '../constants/theme';
+import theme from '../../constants/theme';
+import AppBackground from '../../components/AppBackground';
 
 export default function Home() {
   const [customChallenges, setCustomChallenges] = useState([]);
@@ -26,7 +27,7 @@ export default function Home() {
 
   const latestChallenges = [
     { id: 'static1', title: 'Wstań przed 6:00', type: 'Wyzwanie' },
-    { id: 'static2', title: 'Nie używaj telefonu 3h', type: 'Zakład' },
+    { id: 'static2', title: 'Nie użyj telefonu 3h', type: 'Zakład' },
     { id: 'static3', title: 'Zrób 50 pompek', type: 'Pojedynek' },
   ];
 
@@ -83,86 +84,80 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* SALDO PUNKTOWE */}
-        <View style={styles.pointsWrapper}>
-          <Text style={styles.pointsText}>🏆 {user.points} pkt</Text>
-        </View>
-
-        {/* POWITANIE */}
-        <View style={styles.welcomeSection}>
-          <Image source={{ uri: user.avatar }} style={styles.avatar} />
-          <View style={styles.welcomeTextContainer}>
-            <Text style={styles.welcomeText}>Witaj,</Text>
-            <Text style={styles.userName}>{user.name}</Text>
+    <AppBackground>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.pointsWrapper}>
+            <Text style={styles.pointsText}>🏆 {user.points} pkt</Text>
           </View>
-        </View>
 
-        {/* PODSUMOWANIE */}
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryBox}>
-            <Text style={styles.summaryTitle}>Twoje miejsce</Text>
-            <Text style={styles.summaryValue}>#{user.rankingPosition}</Text>
+          <View style={styles.welcomeSection}>
+            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            <View style={styles.welcomeTextContainer}>
+              <Text style={styles.welcomeText}>Witaj,</Text>
+              <Text style={styles.userName}>{user.name}</Text>
+            </View>
           </View>
-          <View style={styles.summaryBox}>
-            <Text style={styles.summaryTitle}>Top 3 – Maj</Text>
-            {user.topUsers.map((name, index) => (
-              <Text key={index} style={styles.summaryList}>
-                {['🥇', '🥈', '🥉'][index]} {name}
-              </Text>
-            ))}
+
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryTitle}>Twoje miejsce</Text>
+              <Text style={styles.summaryValue}>#{user.rankingPosition}</Text>
+            </View>
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryTitle}>Top 3 – Maj</Text>
+              {user.topUsers.map((name, index) => (
+                <Text key={index} style={styles.summaryList}>
+                  {['🥇', '🥈', '🥉'][index]} {name}
+                </Text>
+              ))}
+            </View>
           </View>
-        </View>
 
-        {/* KAFEL NAGRÓD */}
-        <View style={styles.rewardsCardWrapper}>
-          <TouchableOpacity
-            style={styles.rewardsCard}
-            onPress={() => router.push('/rewards')}
-          >
-            <Text style={styles.rewardsCardTitle}>Sprawdź katalog nagród</Text>
-            <Text style={styles.rewardsCardSubtitle}>
-              Wymień punkty na nagrody
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* SEPARATOR */}
-        <View style={styles.separator} />
-        <Text style={styles.sectionTitle}>Najświeższe wyzwania</Text>
-
-        {/* LISTA WYZWAN */}
-        {allChallenges.map((challenge, index) => (
-          <View key={challenge.id ?? index} style={styles.challengeCard}>
-            <Text style={styles.challengeText}>{challenge.title}</Text>
+          <View style={styles.rewardsCardWrapper}>
             <TouchableOpacity
-              style={styles.betButton}
-              onPress={() => handleBetQuick(challenge)}
+              style={styles.rewardsCard}
+              onPress={() => router.push('/rewards')}
             >
-              <Text style={styles.betButtonText}>Obstaw</Text>
+              <Text style={styles.rewardsCardTitle}>Sprawdź katalog nagród</Text>
+              <Text style={styles.rewardsCardSubtitle}>
+                Wymień punkty na nagrody
+              </Text>
             </TouchableOpacity>
           </View>
-        ))}
 
-        {/* PRZYCISK: DODAJ WŁASNE */}
-        <View style={styles.addCustomButtonWrapper}>
-          <TouchableOpacity
-            style={styles.addCustomButton}
-            onPress={() => router.push('/challenge-create')}
-          >
-            <Text style={styles.addCustomButtonText}>+ Dodaj własne</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.separator} />
+          <Text style={styles.sectionTitle}>Najświeższe wyzwania</Text>
+
+          {allChallenges.map((challenge, index) => (
+            <View key={challenge.id ?? index} style={styles.challengeCard}>
+              <Text style={styles.challengeText}>{challenge.title}</Text>
+              <TouchableOpacity
+                style={styles.betButton}
+                onPress={() => handleBetQuick(challenge)}
+              >
+                <Text style={styles.betButtonText}>Obstaw</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <View style={styles.addCustomButtonWrapper}>
+            <TouchableOpacity
+              style={styles.addCustomButton}
+              onPress={() => router.push('/challenge-create')}
+            >
+              <Text style={styles.addCustomButtonText}>+ Dodaj własne</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </AppBackground>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: theme.colors.backgroundLight,
   },
   container: {
     paddingHorizontal: theme.spacing.md,

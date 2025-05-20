@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import theme from '../constants/theme';
+import theme from '../../constants/theme';
 
 export default function ChallengeDetails() {
   const {
