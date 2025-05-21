@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,30 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-
-const mockHistory = [
-  { id: '1', title: '50 pompek', status: 'wygrane' },
-  { id: '2', title: 'Kto więcej kroków', status: 'przegrane' },
-  { id: '3', title: 'Czy Ania zadzwoni?', status: 'nierozstrzygniete' },
-];
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/firebaseConfig';
 
 const HistoryScreen = () => {
   const [filter, setFilter] = useState<'wszystkie' | 'wygrane' | 'przegrane'>('wszystkie');
+  const [historyData, setHistoryData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'challenges'));
+        const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setHistoryData(items);
+      } catch (error) {
+        console.error('Błąd pobierania danych:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const filteredData =
     filter === 'wszystkie'
-      ? mockHistory
-      : mockHistory.filter((item) => item.status === filter);
+      ? historyData
+      : historyData.filter((item) => item.status === filter);
 
   return (
     <View style={styles.wrapper}>
@@ -44,11 +54,11 @@ const HistoryScreen = () => {
             ))}
           </View>
 
-          {/* Lista historii */}
-          {filteredData.map((item) => (
+          {/* Lista */}
+          {filteredData.map((item: any) => (
             <View key={item.id} style={styles.card}>
               <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardStatus}>{item.status.toUpperCase()}</Text>
+              <Text style={styles.cardStatus}>{(item.status || 'nierozstrzygnięte').toUpperCase()}</Text>
             </View>
           ))}
         </ScrollView>

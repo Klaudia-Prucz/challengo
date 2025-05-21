@@ -9,10 +9,16 @@ import {
   ScrollView,
   Image,
   ImageBackground,
+  Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebaseConfig';
 
 const ChallengeCreate = () => {
+  const router = useRouter();
+
   const [type, setType] = useState<'wyzwanie' | 'pojedynek' | 'zaklad'>('wyzwanie');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -39,12 +45,44 @@ const ChallengeCreate = () => {
     }
   };
 
+  const handleSubmit = async () => {
+    try {
+      await addDoc(collection(db, 'challenges'), {
+        type,
+        title,
+        description,
+        startDate,
+        endDate,
+        rewardType,
+        reward,
+        rewardDescription,
+        rewardImage,
+        opponent,
+        betContent,
+        betGuess,
+        participants,
+        visibility,
+        createdAt: new Date().toISOString(),
+      });
+      Alert.alert('Sukces', 'Zadanie zostało zapisane!', [
+        {
+          text: 'OK',
+          onPress: () => router.push('/(tabs)/history'),
+        },
+      ]);
+    } catch (error) {
+      console.error('Błąd przy zapisie:', error);
+      Alert.alert('Błąd', 'Nie udało się zapisać zadania.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ImageBackground source={require('../../assets/background_standard.png')} style={styles.background}>
         <ScrollView contentContainerStyle={styles.container}>
           <Text style={styles.heading}>Utwórz zadanie</Text>
 
+          {/* Typ zadania */}
           <Text style={styles.label}>Typ zadania</Text>
           <View style={styles.row}>
             {['wyzwanie', 'pojedynek', 'zaklad'].map((t) => (
@@ -58,6 +96,7 @@ const ChallengeCreate = () => {
             ))}
           </View>
 
+          {/* Wspólne pola */}
           <Text style={styles.label}>Tytuł</Text>
           <TextInput style={styles.input} value={title} onChangeText={setTitle} />
 
@@ -70,7 +109,7 @@ const ChallengeCreate = () => {
             onChangeText={setDescription}
           />
 
-          <Text style={styles.label}>Data rozpoczecia</Text>
+          <Text style={styles.label}>Data rozpoczęcia</Text>
           <TextInput style={styles.input} placeholder="RRRR-MM-DD" value={startDate} onChangeText={setStartDate} />
 
           <Text style={styles.label}>Data zakończenia</Text>
@@ -127,6 +166,7 @@ const ChallengeCreate = () => {
             </>
           )}
 
+          {/* Nagroda */}
           <Text style={styles.label}>Typ nagrody</Text>
           <View style={styles.row}>
             <TouchableOpacity
@@ -178,6 +218,7 @@ const ChallengeCreate = () => {
             </>
           )}
 
+          {/* Uczestnicy i widoczność */}
           <Text style={styles.label}>Zaproś uczestników</Text>
           <TextInput
             style={styles.input}
@@ -202,7 +243,7 @@ const ChallengeCreate = () => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.submitButton}>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
             <Text style={styles.submitText}>Zapisz zadanie</Text>
           </TouchableOpacity>
         </ScrollView>
