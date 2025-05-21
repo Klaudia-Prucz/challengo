@@ -1,201 +1,126 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  Alert,
+  ScrollView,
+  ImageBackground,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import theme from '../../constants/theme';
 
-const FILTERS = ['Wszystkie', 'Wygrane', 'Przegrane', 'Nierozstrzygnięte'];
+const mockHistory = [
+  { id: '1', title: '50 pompek', status: 'wygrane' },
+  { id: '2', title: 'Kto więcej kroków', status: 'przegrane' },
+  { id: '3', title: 'Czy Ania zadzwoni?', status: 'nierozstrzygniete' },
+];
 
-export default function History() {
-  const [challenges, setChallenges] = useState([]);
-  const [filter, setFilter] = useState('Wszystkie');
+const HistoryScreen = () => {
+  const [filter, setFilter] = useState<'wszystkie' | 'wygrane' | 'przegrane'>('wszystkie');
 
-  useEffect(() => {
-    const loadChallenges = async () => {
-      try {
-        const custom = await AsyncStorage.getItem('customChallenges');
-        const bets = await AsyncStorage.getItem('userBets');
-
-        const parsedCustom = custom ? JSON.parse(custom) : [];
-        const parsedBets = bets ? JSON.parse(bets) : [];
-
-        const combined = [...parsedCustom, ...parsedBets];
-
-        const withStatus = combined.map((item) => ({
-          ...item,
-          status:
-            item.status ||
-            ['Wygrane', 'Przegrane', 'Nierozstrzygnięte'][
-              Math.floor(Math.random() * 3)
-            ],
-        }));
-
-        setChallenges(withStatus.reverse());
-      } catch (e) {
-        console.error('Błąd historii:', e);
-      }
-    };
-
-    loadChallenges();
-  }, []);
-
-  const handleDelete = (id) => {
-    Alert.alert(
-      'Usuń wyzwanie',
-      'Czy na pewno chcesz usunąć to wyzwanie?',
-      [
-        { text: 'Anuluj', style: 'cancel' },
-        {
-          text: 'Usuń',
-          style: 'destructive',
-          onPress: async () => {
-            const updated = challenges.filter((ch) => ch.id !== id);
-            setChallenges(updated);
-
-            // Aktualizujemy tylko customChallenges i userBets
-            const newCustom = updated.filter((c) => !c.status);
-            const newBets = updated.filter((c) => c.status);
-
-            await AsyncStorage.setItem('customChallenges', JSON.stringify(newCustom));
-            await AsyncStorage.setItem('userBets', JSON.stringify(newBets));
-          },
-        },
-      ]
-    );
-  };
-
-  const filteredChallenges =
-    filter === 'Wszystkie'
-      ? challenges
-      : challenges.filter((ch) => ch.status === filter);
+  const filteredData =
+    filter === 'wszystkie'
+      ? mockHistory
+      : mockHistory.filter((item) => item.status === filter);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.heading}>Historia wyzwań</Text>
+    <View style={styles.wrapper}>
+      <ImageBackground source={require('../../assets/background_standard.png')} style={styles.background}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.headerSpacer} />
+          <Text style={styles.heading}>Historia zakładów</Text>
 
-        {/* FILTRY */}
-        <View style={styles.filtersRow}>
-          {FILTERS.map((item) => (
-            <TouchableOpacity
-              key={item}
-              style={[
-                styles.filterButton,
-                filter === item && styles.filterButtonActive,
-              ]}
-              onPress={() => setFilter(item)}
-            >
-              <Text
-                style={[
-                  styles.filterText,
-                  filter === item && styles.filterTextActive,
-                ]}
+          {/* Filtry */}
+          <View style={styles.row}>
+            {['wszystkie', 'wygrane', 'przegrane'].map((f) => (
+              <TouchableOpacity
+                key={f}
+                style={[styles.filterButton, filter === f && styles.selected]}
+                onPress={() => setFilter(f as any)}
               >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <Text style={styles.filterText}>{f}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* LISTA */}
-        {filteredChallenges.length === 0 ? (
-          <Text style={styles.emptyText}>Brak wyzwań do wyświetlenia.</Text>
-        ) : (
-          filteredChallenges.map((ch) => (
-            <TouchableOpacity
-              key={ch.id}
-              style={styles.challengeCard}
-              onPress={() =>
-                router.push({
-                  pathname: '/challenge-details',
-                  params: ch,
-                })
-              }
-              onLongPress={() => handleDelete(ch.id)}
-            >
-              <Text style={styles.title}>{ch.title}</Text>
-              <Text style={styles.meta}>
-                Typ: {ch.type} | Status: {ch.status}
-              </Text>
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          {/* Lista historii */}
+          {filteredData.map((item) => (
+            <View key={item.id} style={styles.card}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardStatus}>{item.status.toUpperCase()}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      </ImageBackground>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  safeArea: {
+  wrapper: {
     flex: 1,
-    backgroundColor: theme.colors.backgroundLight,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
   },
   container: {
-    padding: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
+    padding: 16,
+    paddingBottom: 32,
+  },
+  headerSpacer: {
+    height: 48,
   },
   heading: {
-    fontSize: theme.fontSizes.lg,
-    fontWeight: 'bold',
-    marginBottom: theme.spacing.md,
-    color: theme.colors.textDark,
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#3F51B5',
+    marginBottom: 16,
   },
-  filtersRow: {
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
+    gap: 8,
+    marginBottom: 16,
   },
   filterButton: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: theme.colors.lightGray,
-    borderRadius: theme.radius.full,
-    marginRight: theme.spacing.sm,
-    marginBottom: theme.spacing.sm,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff4ee',
   },
-  filterButtonActive: {
-    backgroundColor: theme.colors.lightPink,
+  selected: {
+    borderColor: '#E76617',
+    backgroundColor: '#ffe7d7',
   },
   filterText: {
-    color: theme.colors.darkGray,
-    fontSize: theme.fontSizes.sm,
+    color: '#E76617',
+    fontWeight: '500',
   },
-  filterTextActive: {
-    color: theme.colors.primaryDark,
-    fontWeight: 'bold',
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
   },
-  challengeCard: {
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.lightGray,
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
   },
-  title: {
-    fontSize: theme.fontSizes.md,
-    fontWeight: 'bold',
-    color: theme.colors.textDark,
-    marginBottom: 4,
-  },
-  meta: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.darkGray,
-  },
-  emptyText: {
-    color: theme.colors.darkGray,
-    fontSize: theme.fontSizes.sm,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginTop: theme.spacing.lg,
+  cardStatus: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#888',
   },
 });
+
+export default HistoryScreen;

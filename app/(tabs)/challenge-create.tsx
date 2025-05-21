@@ -1,187 +1,233 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Platform
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  Image,
+  ImageBackground,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { router } from 'expo-router';
-import theme from '../../constants/theme';
-import { v4 as uuidv4 } from 'uuid';
+import * as ImagePicker from 'expo-image-picker';
 
-export default function ChallengeCreate() {
+const ChallengeCreate = () => {
+  const [type, setType] = useState<'wyzwanie' | 'pojedynek' | 'zaklad'>('wyzwanie');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
-  const [rewardPoints, setRewardPoints] = useState('');
-  const [rewardText, setRewardText] = useState('');
-  const [invitee, setInvitee] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [rewardType, setRewardType] = useState<'punkty' | 'rzeczowa'>('punkty');
+  const [reward, setReward] = useState('');
+  const [rewardDescription, setRewardDescription] = useState('');
+  const [rewardImage, setRewardImage] = useState<string | null>(null);
+  const [opponent, setOpponent] = useState('');
+  const [betContent, setBetContent] = useState('');
+  const [betGuess, setBetGuess] = useState<'tak' | 'nie' | 'inny' | ''>('');
+  const [participants, setParticipants] = useState('');
+  const [visibility, setVisibility] = useState<'private' | 'public'>('private');
 
-  const handleCreate = () => {
-    if (!title.trim()) {
-      Alert.alert('Błąd', 'Podaj tytuł wyzwania.');
-      return;
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setRewardImage(result.assets[0].uri);
     }
-
-    if (rewardPoints && rewardText) {
-      Alert.alert('Błąd', 'Podaj tylko punkty lub opis nagrody, nie oba.');
-      return;
-    }
-
-    const challenge = {
-      id: uuidv4(),
-      type: 'Wyzwanie',
-      title,
-      description,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      rewardPoints: rewardPoints ? parseInt(rewardPoints) : null,
-      rewardText: rewardText || null,
-      invitee: invitee || null,
-      createdBy: 'uid_usera', // TODO: podmień na faktyczny UID z auth
-      createdAt: new Date().toISOString(),
-      status: 'oczekujące',
-    };
-
-    console.log('Utworzono:', challenge);
-    Alert.alert('Sukces', 'Wyzwanie zostało utworzone!');
-    router.back();
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Nowe wyzwanie</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ImageBackground source={require('../../assets/background_standard.png')} style={styles.background}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.heading}>Utwórz zadanie</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Tytuł"
-        value={title}
-        onChangeText={setTitle}
-      />
+          <Text style={styles.label}>Typ zadania</Text>
+          <View style={styles.row}>
+            {['wyzwanie', 'pojedynek', 'zaklad'].map((t) => (
+              <TouchableOpacity
+                key={t}
+                style={[styles.optionButton, type === t && styles.selected]}
+                onPress={() => setType(t as any)}
+              >
+                <Text style={styles.optionText}>{t}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        placeholder="Opis"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
+          <Text style={styles.label}>Tytuł</Text>
+          <TextInput style={styles.input} value={title} onChangeText={setTitle} />
 
-      {/* Data rozpoczęcia */}
-      <TouchableOpacity onPress={() => setShowStartPicker(true)} style={styles.dateButton}>
-        <Text style={styles.dateButtonText}>
-          Start: {startDate.toLocaleDateString()}
-        </Text>
-      </TouchableOpacity>
-      {showStartPicker && (
-        <DateTimePicker
-          value={startDate}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            setShowStartPicker(Platform.OS === 'ios');
-            if (date) setStartDate(date);
-          }}
-        />
-      )}
+          <Text style={styles.label}>Opis</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            multiline
+            numberOfLines={4}
+            value={description}
+            onChangeText={setDescription}
+          />
 
-      {/* Data zakończenia */}
-      <TouchableOpacity onPress={() => setShowEndPicker(true)} style={styles.dateButton}>
-        <Text style={styles.dateButtonText}>
-          Koniec: {endDate.toLocaleDateString()}
-        </Text>
-      </TouchableOpacity>
-      {showEndPicker && (
-        <DateTimePicker
-          value={endDate}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            setShowEndPicker(Platform.OS === 'ios');
-            if (date) setEndDate(date);
-          }}
-        />
-      )}
+          <Text style={styles.label}>Data rozpoczecia</Text>
+          <TextInput style={styles.input} placeholder="RRRR-MM-DD" value={startDate} onChangeText={setStartDate} />
 
-      {/* Nagroda */}
-      <TextInput
-        style={styles.input}
-        placeholder="Nagroda punktowa (np. 100)"
-        keyboardType="numeric"
-        value={rewardPoints}
-        onChangeText={setRewardPoints}
-      />
+          <Text style={styles.label}>Data zakończenia</Text>
+          <TextInput style={styles.input} placeholder="RRRR-MM-DD" value={endDate} onChangeText={setEndDate} />
 
-      <Text style={styles.or}>lub</Text>
+          {type === 'pojedynek' && (
+            <>
+              <Text style={styles.label}>Z kim się pojedynkujesz?</Text>
+              <TextInput style={styles.input} value={opponent} onChangeText={setOpponent} />
+            </>
+          )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Opis nagrody rzeczowej"
-        value={rewardText}
-        onChangeText={setRewardText}
-      />
+          {type === 'zaklad' && (
+            <>
+              <Text style={styles.label}>Treść zakładu</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={betContent}
+                onChangeText={setBetContent}
+                multiline
+              />
+              <Text style={styles.label}>Obstawiasz wynik zakładu:</Text>
+              <View style={styles.row}>
+                <TouchableOpacity
+                  style={[styles.optionButton, betGuess === 'tak' && styles.selected]}
+                  onPress={() => setBetGuess('tak')}
+                >
+                  <Text style={styles.optionText}>Tak</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.optionButton, betGuess === 'nie' && styles.selected]}
+                  onPress={() => setBetGuess('nie')}
+                >
+                  <Text style={styles.optionText}>Nie</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.optionButton, betGuess === 'inny' && styles.selected]}
+                  onPress={() => setBetGuess('inny')}
+                >
+                  <Text style={styles.optionText}>Inny wynik</Text>
+                </TouchableOpacity>
+              </View>
+              {betGuess === 'inny' && (
+                <>
+                  <Text style={styles.label}>Wpisz swój typ</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="np. Zadzwoni tylko raz"
+                    onChangeText={setBetContent}
+                    value={betContent}
+                  />
+                </>
+              )}
+            </>
+          )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Zaproś znajomego (np. @ania)"
-        value={invitee}
-        onChangeText={setInvitee}
-      />
+          <Text style={styles.label}>Typ nagrody</Text>
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={[styles.optionButton, rewardType === 'punkty' && styles.selected]}
+              onPress={() => setRewardType('punkty')}
+            >
+              <Text style={styles.optionText}>Punkty</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.optionButton, rewardType === 'rzeczowa' && styles.selected]}
+              onPress={() => setRewardType('rzeczowa')}
+            >
+              <Text style={styles.optionText}>Własna rzecz</Text>
+            </TouchableOpacity>
+          </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleCreate}>
-        <Text style={styles.buttonText}>Utwórz wyzwanie</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          {rewardType === 'punkty' ? (
+            <>
+              <Text style={styles.label}>Liczba punktów</Text>
+              <TextInput
+                style={styles.input}
+                value={reward}
+                onChangeText={setReward}
+                keyboardType="numeric"
+                placeholder="np. 50"
+              />
+            </>
+          ) : (
+            <>
+              <Text style={styles.label}>Nazwa nagrody</Text>
+              <TextInput
+                style={styles.input}
+                value={reward}
+                onChangeText={setReward}
+                placeholder="np. Kawa w Starbucksie"
+              />
+              <Text style={styles.label}>Opis nagrody</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={rewardDescription}
+                onChangeText={setRewardDescription}
+                multiline
+              />
+              <Text style={styles.label}>Zdjęcie nagrody</Text>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+                <Text style={styles.uploadText}>Wybierz zdjęcie</Text>
+              </TouchableOpacity>
+              {rewardImage && <Image source={{ uri: rewardImage }} style={styles.imagePreview} />}
+            </>
+          )}
+
+          <Text style={styles.label}>Zaproś uczestników</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="np. Ola, Bartek, Ania"
+            value={participants}
+            onChangeText={setParticipants}
+          />
+
+          <Text style={styles.label}>Kto może zobaczyć zadanie?</Text>
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={[styles.optionButton, visibility === 'private' && styles.selected]}
+              onPress={() => setVisibility('private')}
+            >
+              <Text style={styles.optionText}>Tylko zaproszeni</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.optionButton, visibility === 'public' && styles.selected]}
+              onPress={() => setVisibility('public')}
+            >
+              <Text style={styles.optionText}>Publiczne</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.submitButton}>
+            <Text style={styles.submitText}>Zapisz zadanie</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </ImageBackground>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.backgroundLight,
-  },
-  heading: {
-    fontSize: theme.fontSizes.lg,
-    fontWeight: 'bold',
-    color: theme.colors.primaryDark,
-    marginBottom: theme.spacing.lg,
-    textAlign: 'center',
-  },
-  input: {
-    backgroundColor: theme.colors.lightGray,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
-    fontSize: theme.fontSizes.md,
-    marginBottom: theme.spacing.md,
-  },
-  dateButton: {
-    backgroundColor: theme.colors.lightPink,
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.full,
-    marginBottom: theme.spacing.sm,
-    alignItems: 'center',
-  },
-  dateButtonText: {
-    color: theme.colors.primaryDark,
-    fontWeight: 'bold',
-  },
-  or: {
-    textAlign: 'center',
-    marginVertical: 8,
-    fontWeight: '600',
-    color: theme.colors.darkGray,
-  },
-  button: {
-    backgroundColor: theme.colors.lightPink,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.radius.full,
-    alignItems: 'center',
-    marginTop: theme.spacing.md,
-  },
-  buttonText: {
-    color: theme.colors.primaryDark,
-    fontWeight: 'bold',
-    fontSize: theme.fontSizes.md,
-  },
+  safeArea: { flex: 1 },
+  background: { flex: 1, resizeMode: 'cover' },
+  container: { padding: 16, paddingBottom: 32 },
+  heading: { fontSize: 22, fontWeight: '600', marginBottom: 16, color: '#3F51B5' },
+  label: { fontSize: 16, fontWeight: '500', marginTop: 12, marginBottom: 4, color: '#333' },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#f9f9f9' },
+  textArea: { minHeight: 80, textAlignVertical: 'top' },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 8 },
+  optionButton: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#ccc', backgroundColor: '#fff4ee', marginRight: 8, marginBottom: 4 },
+  selected: { borderColor: '#E76617', backgroundColor: '#ffe7d7' },
+  optionText: { color: '#E76617', fontWeight: '500', fontSize: 14 },
+  uploadButton: { marginTop: 8, marginBottom: 12, padding: 10, backgroundColor: '#3F51B5', borderRadius: 10, alignItems: 'center' },
+  uploadText: { color: '#fff', fontWeight: '600' },
+  imagePreview: { width: '100%', height: 150, borderRadius: 10, marginTop: 10, resizeMode: 'cover' },
+  submitButton: { marginTop: 24, backgroundColor: '#E76617', paddingVertical: 14, borderRadius: 16, alignItems: 'center' },
+  submitText: { color: '#fff', fontWeight: '600', fontSize: 16 },
 });
+
+export default ChallengeCreate;

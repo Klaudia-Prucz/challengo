@@ -12,7 +12,7 @@ export default function Layout() {
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.darkGray,
           tabBarStyle: {
-            backgroundColor: 'rgba(255,255,255,0.9)', // delikatnie przeźroczyste nad tłem
+            backgroundColor: 'rgba(255,255,255,0.9)',
             height: 60,
             borderTopWidth: 0.5,
             borderTopColor: theme.colors.gray,
