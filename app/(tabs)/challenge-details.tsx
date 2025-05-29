@@ -8,11 +8,14 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebaseConfig';
 import theme from '../../constants/theme';
 
 export default function ChallengeDetails() {
+  const router = useRouter();
+
   const {
     title,
     type,
@@ -28,7 +31,6 @@ export default function ChallengeDetails() {
   const handleBet = async () => {
     try {
       const newBet = {
-        id: Date.now(),
         title,
         type,
         duration,
@@ -36,19 +38,20 @@ export default function ChallengeDetails() {
         reward,
         invitees,
         note,
-        status: 'Nierozstrzygnięte',
+        status: 'nierozstrzygnięte',
         createdAt: new Date().toISOString(),
       };
 
-      const existing = await AsyncStorage.getItem('userBets');
-      const parsed = existing ? JSON.parse(existing) : [];
+      await addDoc(collection(db, 'userBets'), newBet);
 
-      const updated = [...parsed, newBet];
-      await AsyncStorage.setItem('userBets', JSON.stringify(updated));
-
-      Alert.alert('Sukces!', 'Wyzwanie zostało obstawione.');
+      Alert.alert('Sukces!', 'Wyzwanie zostało obstawione.', [
+        {
+          text: 'OK',
+          onPress: () => router.replace('/history'),
+        },
+      ]);
     } catch (e) {
-      console.error('Błąd zapisu obstawienia:', e);
+      console.error('Błąd zapisu do Firestore:', e);
       Alert.alert('Błąd', 'Nie udało się zapisać zakładu.');
     }
   };

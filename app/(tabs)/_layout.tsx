@@ -54,18 +54,9 @@ export default function Layout() {
           }}
         />
 
-        <Tabs.Screen
-          name="settings"
-          options={{
-            title: 'Ustawienia',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="settings" size={size} color={color} />
-            ),
-          }}
-        />
-
         {/* Ukryte zakładki */}
         <Tabs.Screen name="rewards" options={{ href: null }} />
+        <Tabs.Screen name="nagroda-szczegoly" options={{ href: null }} />
         <Tabs.Screen name="challenge-details" options={{ href: null }} />
         <Tabs.Screen name="challenge-create" options={{ href: null }} />
         <Tabs.Screen name="index" options={{ href: null }} />
