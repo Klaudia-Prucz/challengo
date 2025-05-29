@@ -11,10 +11,12 @@ import {
 } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
+import { useRouter } from 'expo-router';
 
 const HistoryScreen = () => {
   const [filter, setFilter] = useState<'wszystkie' | 'wygrane' | 'przegrane'>('wszystkie');
   const [historyData, setHistoryData] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,10 +58,29 @@ const HistoryScreen = () => {
 
           {/* Lista */}
           {filteredData.map((item: any) => (
-            <View key={item.id} style={styles.card}>
+            <TouchableOpacity
+              key={item.id}
+              style={styles.card}
+              onPress={() =>
+                router.push({
+                  pathname: '/challenge-details',
+                  params: {
+                    title: item.title,
+                    type: item.type,
+                    duration: item.duration,
+                    description: item.description,
+                    reward: item.reward,
+                    invitees: item.invitees,
+                    note: item.note,
+                    status: item.status,
+                    canBet: 'false',
+                  },
+                })
+              }
+            >
               <Text style={styles.cardTitle}>{item.title}</Text>
               <Text style={styles.cardStatus}>{(item.status || 'nierozstrzygnięte').toUpperCase()}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       </ImageBackground>
